@@ -32,33 +32,35 @@ $GLOBALS['alchemy_url']='https://gateway-a.watsonplatform.net/calls';
 	
   
 #### Step 2:
-  Create a module name as 'toneAnalyzer' in index.php and respective actions will be performed accordingly.
+  Create a module name as 'alchemyExtract' in index.php and respective actions will be performed accordingly.
   
 **_Code:_**
 
 ```
 <?php
-if($_REQUEST['module']=='toneAnalyzer'){  
+if($_REQUEST['module']=='alchemyExtract'){ 
     switch ($_REQUEST['action']){
-	    case 'GetList':
+        case 'GetList':
         {
-          $bluemixToneAnalyzerController = BluemixToneAnalyzerController::getInstance();
-          $bluemixToneAnalyzerController->getMasterDataFromMySQL();
-          break;
+			 
+            $alchemyController = AlchemyExtractController::getInstance();
+            $alchemyController->getDataFromAlchemyDB();
+            break;
+        }
+	case 'GetMasterList':
+        {
+			 
+            $alchemyController = AlchemyExtractController::getInstance();
+            $alchemyController->getMasterListData();
+            break;
         }
         case 'DetailList':
         {
-          $bluemixToneAnalyzerController = BluemixToneAnalyzerController::getInstance();
-          $bluemixToneAnalyzerController->getChildDataFromMySQL($_REQUEST);
-          break;
+            $alchemyController = AlchemyExtractController::getInstance();
+            $alchemyController->getExtractChildDataFromMySQL($_REQUEST);
+            break;
         }
-		 case 'InsertList':
-        {
-          $bluemixToneAnalyzerController = BluemixToneAnalyzerController::getInstance();
-          $bluemixToneAnalyzerController->insertBlueMixToneAnalyzerResponseIntoDB();
-          break;
-        }
-		
+      
     }
 }
 ?>
@@ -66,50 +68,43 @@ if($_REQUEST['module']=='toneAnalyzer'){
 ```
 
 #### Step 3:
-   In the server normally we will be able to see existing Master list data. When we click on the update button 'InsertList' action will be performed from index page and **insertBlueMixToneAnalyzerResponseIntoDB()** will be called.
+   In the server normally we will be able to see existing Master list data. When we click on the update button **GetList** action will be performed from index page and **getDataFromAlchemyDB()** will be called.
    
 #### Step 4:
-   From index.php, **BluemixToneAnalyzerController** class will be called which controlles all the operations of Tone Analyzer module. Here function **insertBlueMixToneAnalyzerResponseIntoDB()** will be executed.
+   From index.php, **AlchemyExtractController** class will be called which controlles all the operations of Alchemy Extract module. Here function **getDataFromAlchemyDB()** will be executed.
    
 #### Step 5:
-   This **getTextData()** function gets the multiple records data from Request table and sends request to Tone Analyzer Curl response function **getBlueMixCURLResponse($text)** one by one using for loop.
+   This **getTextData()** function gets the multiple records data from Request table and sends request to Alchemy API response function **entities('text', $text, null)** one by one using for loop.
    
 #### Step 6:
-   On receiving response from API, the JSON response will be stored in Mongo DB by calling function  **insertBlueMixJSONResponseIntoMongo($data)**.
-   
+   On receiving response from API, the JSON response will be stored in Mongo DB by calling function  **insertBlueMixJSONResponseIntoMongo(json_encode($data))**.
+
 #### Step 7:
-   The JSON response result will be converted into Array by calling function **transformJSONToArray($data)**.
-   
-**_Code:_**
-
-```   
-   public function transformJSONToArray($sampletext){
-    	$response_array = json_decode($sampletext,TRUE);
-    	return $response_array;
-	}
-  
-```  
-
-#### Step 8:
-   The response array will be inserted into Master data by function **insertMasterDataIntoMySQL($bluemix_response_array)**.
+   The response array will be inserted into Master data by function **insertExtractedMasterDataIntoMySQL($data,$id);** from Controller.
    
 **_Code:_**
 
 ```  
-  public function insertMasterDataIntoMySQL($data){
+ public function insertAllExtractedMasterDataIntoMySQL($data,$id){
 		$this->response_array =$data;
-		$masterId=$this->insertIntoMasterData();
-		if($masterId>0)
+		$masterId=$this->insertIntoMasterData(json_encode($data),$id);
+        if($masterId>0)
 		return $this->getParsedDataFromJSONResponse($masterId);
 	}
-  
-   public function insertIntoMasterData(){
-    	$sql = "INSERT INTO master_tone_analyzer_request
+	
+	
+	public function insertIntoMasterData($json_response,$id){
+    	$sql = "INSERT INTO alchemy_master
                (
-                master_comments,
-                master_reponse) VALUES (
-                '$data',
-                'Json Response'
+                alm_sugar_id,
+                alm_response_text,
+                alm_date,alm_external_id
+                ) VALUES (
+                
+                '',
+                '$json_response',
+                NOW(),
+				'$id'
                 )";
 		mysqli_query($this->con,$sql);
         return $this->con->insert_id;
@@ -117,49 +112,111 @@ if($_REQUEST['module']=='toneAnalyzer'){
 
 ```
 
-#### Step 9:
+#### Step 8:
    Here based on the master request id, the response will be stored in Child table by function **getParsedDataFromJSONResponse($masterReqId)**.
 
 **_Code:_**
 
 ```
-    public function getParsedDataFromJSONResponse($masterReqId){
-		//echo "<pre>";print_r($this->response_array);
-    	foreach($this->response_array['document_tone']['tone_categories'] as $mainKey=>$mainVal){
-            foreach($mainVal['tones'] as $secLKey=>$secLVal){
-				$tone['score']=$secLVal['score'];
-				$tone['tone_id']=$secLVal['tone_id'];
-				$tone['tone_name']=$secLVal['tone_name'];
-				$tone['category_id']=$mainVal['category_id'];
-                $this->collectChildrenRecordData($tone,$masterReqId);
-			}
+   public function getParsedDataFromJSONResponse($masterId){
+    	foreach($this->response_array['entities'] as $entityKey=>$entityVal) {
+            $row['alc_master_id']=$masterId;
+            $row['alc_type']=$entityVal['type'];
+            $row['alc_relevance']=$entityVal['relevance'];
+            $row['alc_count']=$entityVal['count'];
+            $row['alc_text']=$entityVal['text'];
+            //$row['alc_quotations_statement']=$entityVal['statement'];
+            $row['alc_knowledgegraph_typehierarchy']=$entityVal['knowledgegraph']['typehierarchy'];
+            $row['alc_sentiment_type']=$entityVal['sentiment']['type'];
+            $row['alc_sentiment_score']=$entityVal['sentiment']['score'];
+            $row['alc_sentiment_mixed']=$entityVal['sentiment']['mixed'];
+            $row['alc_disambiguated_name']=$entityVal['disambiguated']['name'];
+
+            $row['alc_disambiguated_website']=$entityVal['disambiguated']['website'];
+            $row['alc_disambiguated_geo']=$entityVal['disambiguated']['geo'];
+            $row['alc_disambiguated_dbpedia']=$entityVal['disambiguated']['dbpedia'];
+            $row['alc_disambiguated_yago']=$entityVal['disambiguated']['yago'];
+            $row['alc_disambiguated_opencyc']=$entityVal['disambiguated']['opencyc'];
+            $row['alc_disambiguated_umbel']=$entityVal['disambiguated']['umbel'];
+            $row['alc_disambiguated_freeebase']=$entityVal['disambiguated']['freeebase'];
+            $row['alc_disambiguated_ciafactbook']=$entityVal['disambiguated']['ciafactbook'];
+            $row['alc_disambiguated_census']=$entityVal['disambiguated']['census'];
+            $row['alc_disambiguated_geonames']=$entityVal['disambiguated']['geonames'];
+            $row['alc_disambiguated_musicbrainz']=$entityVal['disambiguated']['musicbrainz'];
+            $row['alc_disambiguated_crunchbase']=$entityVal['disambiguated']['crunchbase'];
+            /*$row['alc_subtype_id']=$entityVal[''];
+            $row['alc_subtype_name']=$entityVal[''];*/
+            $row['alc_quotation']=$entityVal['quotation'];
+
+            if(count($entityVal['disambiguated']['subtype'])>0)
+            foreach($entityVal['disambiguated']['subtype'] as $disStypeKey => $disStypeVal){
+                $row['alc_disambiguated_subtype']=$disStypeVal;
+                $this->insertIntoRowMysqlTable($row);
+            }
+            else $this->insertIntoRowMysqlTable($row);
         }
-	return true;
+	    return true;
     }
 
-    public function collectChildrenRecordData($mainVal,$masterReqId){
-    	$rowData = array();
-        $rowData['score']=$mainVal['score'];
-        $rowData['tone_id']=$mainVal['tone_id'];
-        $rowData['tone_name']=$mainVal['tone_name'];
-		$rowData['category_id']=$mainVal['category_id'];
-        $rowData['request_id']=$masterReqId;
-        return $this->insertIntoChildren($rowData);
-    }
-
-    public function insertIntoChildren($rowData){
-    	//if($rowData['score']!='')
-		$sql = "INSERT INTO children_tone_analyzer_request
-                (tones_score,
-                tones_tone_id,
-                tones_tone_name,
-				category_id,
-                master_request_id) VALUES (
-                '".$rowData['score']."',
-                '".$rowData['tone_id']."',
-                '".$rowData['tone_name']."',
-				'".$rowData['category_id']."',
-                '".$rowData['request_id']."'
+    public function insertIntoRowMysqlTable($rowData=array()){
+    	$sql = "INSERT INTO alchemy_child(
+                    alc_master_id,
+                    alc_type,
+                    alc_relevance,
+                    alc_count,
+                    alc_text,
+                    alc_quotations_statement,
+                    alc_knowledgegraph_typehierarchy,
+                    alc_sentiment_type,
+                    alc_sentiment_score,
+                    alc_sentiment_mixed,
+                    alc_disambiguated_name,
+                    alc_disambiguated_subtype,
+                    alc_disambiguated_website,
+                    alc_disambiguated_geo,
+                    alc_disambiguated_dbpedia,
+                    alc_disambiguated_yago,
+                    alc_disambiguated_opencyc,
+                    alc_disambiguated_umbel,
+                    alc_disambiguated_freeebase,
+                    alc_disambiguated_ciafactbook,
+                    alc_disambiguated_census,
+                    alc_disambiguated_geonames,
+                    alc_disambiguated_musicbrainz,
+                    alc_disambiguated_crunchbase,
+                    alc_subtype_id,
+                    alc_subtype_name,
+                    alc_quotation,
+                    alc_date
+                ) VALUES (
+                    '".$rowData['alc_master_id']."',
+                    '".$rowData['alc_type']."',
+                    '".$rowData['alc_relevance']."',
+                    '".$rowData['alc_count']."',
+                    '".$rowData['alc_text']."',
+                    '".$rowData['alc_quotations_statement']."',
+                    '".$rowData['alc_knowledgegraph_typehierarchy']."',
+                    '".$rowData['alc_sentiment_type']."',
+                    '".$rowData['alc_sentiment_score']."',
+                    '".$rowData['alc_sentiment_mixed']."',
+                    '".$rowData['alc_disambiguated_name']."',
+                    '".$rowData['alc_disambiguated_subtype']."',
+                    '".$rowData['alc_disambiguated_website']."',
+                    '".$rowData['alc_disambiguated_geo']."',
+                    '".$rowData['alc_disambiguated_dbpedia']."',
+                    '".$rowData['alc_disambiguated_yago']."',
+                    '".$rowData['alc_disambiguated_opencyc']."',
+                    '".$rowData['alc_disambiguated_umbel']."',
+                    '".$rowData['alc_disambiguated_freeebase']."',
+                    '".$rowData['alc_disambiguated_ciafactbook']."',
+                    '".$rowData['alc_disambiguated_census']."',
+                    '".$rowData['alc_disambiguated_geonames']."',
+                    '".$rowData['alc_disambiguated_musicbrainz']."',
+                    '".$rowData['alc_disambiguated_crunchbase']."',
+                    '".$rowData['alc_subtype_id']."',
+                    '".$rowData['alc_subtype_name']."',
+                    '".$rowData['alc_quotation']."',
+                    NOW()
                 )";
         mysqli_query($this->con,$sql);
         return $this->con->insert_id;
@@ -167,39 +224,40 @@ if($_REQUEST['module']=='toneAnalyzer'){
     
 ```
 
+#### Step 9:
+   On inserting the JSON response into master and child tables, the status and Request date will be updated for that record in the Request table by function **updateTextData($id)** in controller.
+
+
 #### Step 10:
-   On inserting the JSON response into master and child tables, the status and Request date will be updated for that record in the Request table by function **updateToneAnalyzerTextData($id)** in controller.
-
-
-#### Step 11:
    To get the Master list function **getALLMasterDataFromMySQL** will be called from controller.
    
-#### Step 12:
-   To view the Master list function **showallMasterListView()** will be called from controller to View.
+#### Step 11:
+   To view the Master list function **showExtractedMasterListView()** will be called from controller to View.
    
 **_Code:_**
 
 ```
-   function showallMasterListView($data_arr){
+  function showExtractedMasterListView($data_arr){
         $smarty = new Smarty();
         $smarty->assign('base_path',$GLOBALS['base_path']);
 		$smarty->assign('cursor',$data_arr);
-	    $smarty->display(''.$GLOBALS['root_path'].'/Views/BluemixToneAnalyzer/allmasterList.tpl');
+		
+	    $smarty->display(''.$GLOBALS['root_path'].'/Views/AlchemyExtract/allMasterList.tpl');
     }
     
 ``` 
 
-#### Step 13:
-   To view the Child data based on the master id, function **getChildDataFromMySQL($post_data)** will be called from controller.
-   Function **getAllChildDataFromMySQL($post_data)** will get the reocrds based on the master id using MySql query. Function **showDetailListView($bluemix_list_vo)** will be called in view. 
+#### Step 12:
+   To view the Child data based on the master id, function **getExtractChildDataFromMySQL($post_data)** will be called from controller.
+   Function **getAllChildDataFromMySQL($post_data)** will get the records based on the master id using MySql query. Function **showChildDetailListView($alchemy_list_vo)** will be called in view. 
    
 **_Code:_**
 
 ```
-public function getChildDataFromMySQL($post_data){
-        $bluemix_action = BluemixToneAnalyzerAction::getInstance();            
-        $bluemix_list_vo = $bluemix_action->getAllChildDataFromMySQL($post_data);
-		$bluemix_view = BluemixToneAnalyzerView::getInstance();            
-    	$bluemix_view->showDetailListView($bluemix_list_vo);
+public function getExtractChildDataFromMySQL($post_data){
+        $alchemy_action = AlchemyExtractAction::getInstance();
+        $alchemy_list_vo = $alchemy_action->getAllChildDataFromMySQL($post_data);
+		$alchemy_view = AlchemyExtractView::getInstance();
+    	$alchemy_view->showChildDetailListView($alchemy_list_vo);
 	}
 ```
