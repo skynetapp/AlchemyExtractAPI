@@ -8,7 +8,7 @@
    Root Directory | Sub Directory | Sub Directory 
 ------------ | ------------- | -------------
 index.php | | |
-Global | DBmongo(Mongo Connection),DBmysql(MySQL Connection), BlueMixToneAnalyzerAPI(Tone Analyzer Connection)  | 
+Global | DBmongo(Mongo Connection),DBmysql(MySQL Connection), AlchemyAPI(Alchemy API Connection)  | 
 Lib | Smarty,Common functions | |
 Modules | AlchemyExtract | Alchemy Extract Controller, Alchemy Extract Action, Alchemy Extract MySql, Alchemy Extract View, Alchemy Extract API Call, Alchemy Extract DB Mongo|
 Views | AlchemyExtract | header.tpl, footer.tpl(Common files), masterList.tpl,detailList.tpl|
@@ -19,15 +19,14 @@ Views | AlchemyExtract | header.tpl, footer.tpl(Common files), masterList.tpl,de
    
  
 #### Step 1:
-  Add the created Url, Username and Password in the config.php under bluemix2.0 folder.
+  Add the created Url and Alchemy Key in the config.php under bluemix2.0 folder.
 	
 **_Code:_**
 	
 ```
 	
-	$GLOBALS['bluemix_toneanalyzer_username']='0d29fcc3-35c3-4ca4-ae50-9624b6568262';
-	$GLOBALS['bluemix_toneanalyzer_password']='DFLJXTdtPqAF';
-	$GLOBALS['bluemix_toneanalyzer_url']='https://gateway.watsonplatform.net/tone-analyzer/api/v3/tone?version=2016-05-19';
+$GLOBALS['alchemy_apiKey']='75c6700778eda02ffce454aed26b51f1faad5f54';
+$GLOBALS['alchemy_url']='https://gateway-a.watsonplatform.net/calls';
 	
 ```
 	
