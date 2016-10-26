@@ -9,8 +9,8 @@
 ------------ | ------------- | -------------
 index.php | | |
 Global | DBmongo(Mongo Connection),DBmysql(MySQL Connection), AlchemyAPI(Alchemy API Connection)  | 
-Lib | Smarty,Common functions | |
-Modules | AlchemyExtract | Alchemy Extract Controller, Alchemy Extract Action, Alchemy Extract MySql, Alchemy Extract View, Alchemy Extract API Call, Alchemy Extract DB Mongo|
+Lib | Smarty,Common functions,AlchemyAPI | |
+Modules | AlchemyExtract | Alchemy Extract Controller, Alchemy Extract Action, Alchemy Extract MySql, Alchemy Extract View, Alchemy Extract DB Mongo|
 Views | AlchemyExtract | header.tpl, footer.tpl(Common files), masterList.tpl,detailList.tpl|
 
 #### Code Flows as follows:
