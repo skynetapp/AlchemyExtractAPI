@@ -19,13 +19,13 @@ Views | AlchemyExtract | header.tpl, footer.tpl(Common files), masterList.tpl,de
    
  
 #### Step 1:
-  Add the created Url and Alchemy Key in the config.php under bluemix2.0 folder.
+  Add the created Url and Alchemy Key in the config.php under bluemix2.0 folder.we can get the Alchemy API Key by logging into IBM Bluemix. 
 	
 **_Code:_**
 	
 ```
 	
-$GLOBALS['alchemy_apiKey']='75c6700778eda02ffce454aed26b51f1faad5f54';
+$GLOBALS['alchemy_apiKey']='xxxxxxxxxxxxxxxxxxxxxxxxxx';
 $GLOBALS['alchemy_url']='https://gateway-a.watsonplatform.net/calls';
 	
 ```
