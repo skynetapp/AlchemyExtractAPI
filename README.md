@@ -84,7 +84,7 @@ $GLOBALS['alchemy_url']='https://gateway-a.watsonplatform.net/calls';
    
 #### Assumptions
 
-- DBMongo - Inserts the Alchemy JSON response into mongo. 
+- DBMongo - Inserts the Alchemy JSON response into mongo. It is included in Global -> DBMongo.
 
 #### Errors
 
