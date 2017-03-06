@@ -84,6 +84,7 @@ $GLOBALS['alchemy_url']='https://gateway-a.watsonplatform.net/calls';
    
 #### Assumptions
 
+- DBMongo - Inserts the Alchemy JSON response into mongo. 
 
 #### Errors
 
@@ -98,7 +99,8 @@ http://159.203.239.91/bluemix2.0/index.php?module=alchemyExtract&action=GetMaste
 
 ```
 - The root path, base path and the database name should be correct in config.php.
-- The alchemy API key should be a valid key from IBM Bluemix.
+- The alchemy API key should be a valid key from IBM Bluemix. If the key is expired, the results may not be appeared.
+- If the day limit is exceeded for the API key, then also the child results will not be inserted. 
 
 
 
