@@ -108,7 +108,7 @@ http://159.203.239.91/bluemix2.0/index.php?module=alchemyExtract&action=GetMaste
   
  Database Name: bluemix
  
- Tables | Description | Fields
+ Tables | Description | Fields |
 ------------ | ------------- |
 BlueMixAlmEntityExtractReq | Request table to get records where EntityExtractionStatus='' and status=0 |
 alchemy_master | Stores the extracted data based on the request id | alm_id, alm_date, alm_external_id, alm_response_text |
