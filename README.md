@@ -103,8 +103,21 @@ http://159.203.239.91/bluemix2.0/index.php?module=alchemyExtract&action=GetMaste
 - If the day limit is exceeded for the API key, then also the child results will not be inserted. 
 
 
+#### MySQL Database Details
 
-
+  
+ Database Name: bluemix
+ 
+ Tables | Description  
+------------ | -------------
+BlueMixAlmEntityExtractReq | Request table to get records|
+alchemy_master | Stores the extracted data based on the request id
+alchemy_child | Stores the records based on master id
+ 
+ 
+ 
+ 
+ 
 
 
 
