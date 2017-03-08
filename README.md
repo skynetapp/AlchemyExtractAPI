@@ -115,9 +115,9 @@ alchemy_master | Stores the extracted data based on the request id | alm_id, alm
 alchemy_child | Stores the child records based on master id | alc_id, alc_master_id, alc_type, alc_relevance, alc_count, alc_text |
  
  
- #### Mongo Database details
+#### Mongo Database details
  
- Database Name: lytepole
+Database Name: lytepole
  
  
 
