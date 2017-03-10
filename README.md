@@ -13,6 +13,15 @@ Lib | Smarty,Common functions,AlchemyAPI | |
 Modules | AlchemyExtract | Alchemy Extract Controller, Alchemy Extract Action, Alchemy Extract MySql, Alchemy Extract View, Alchemy Extract DB Mongo|
 Views | AlchemyExtract | header.tpl, footer.tpl(Common files), masterList.tpl,detailList.tpl|
 
+#### Architecture
+
+1. Read data from MySQL Table where EntityExtractionStatus='' and status=0 (Table name - BlueMixAlmEntityExtractReq)
+2. Invoke Watson by calling Alchemy API (entities) which calls the **api key** and gets response from API for multiple records.
+3. The response is processed and updated in Parent Table (alchemy_master) and the corresponding children are stored in child table name (alchemy_child). 
+4. Updating the processed records status after getting the response. 
+5. The raw response from Watson is also stored in MongoDB (lytepole) as raw JSON file.
+
+
 #### Code Flows as follows:
    * To insert or get data from DB code flows.. index.php -> Controller -> Action -> MySql.
    * To view the data code flows.. index.php -> Controller -> View.
@@ -117,9 +126,14 @@ alchemy_child | Stores the child records based on master id | alc_id, alc_master
  
 #### Mongo Database details
  
-Database Name: lytepole
- 
- 
+Database Name: lytepole 
+Description: Mongo stores the JSON response given by the Alchemy API for all the records.
+
+- To start the mongoDB, open command prompt.
+- change the path where mongo is installed.
+- To start the MongoDB service - **net start MongoDB**.
+- To display the database, type **db**. It will return **test** as default database. To use our database type ** use dbname **.
+- To stop the MongoDB service - **net stop MongoDB**. 
 
 
 
