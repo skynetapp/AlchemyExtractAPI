@@ -126,14 +126,15 @@ alchemy_child | Stores the child records based on master id | alc_id, alc_master
  
 #### Mongo Database details
  
-Database Name: lytepole 
-Description: Mongo stores the JSON response given by the Alchemy API for all the records.
+- Database Name: lytepole
+- Table or collection name : BlueMixEntityExtract 
+- Description: Mongo stores the JSON response given by the Alchemy API for all the records.
 
 - To start the mongoDB, open command prompt.
 - change the path where mongo is installed.
-- To start the MongoDB service - **net start MongoDB**.
-- To display the database, type **db**. It will return **test** as default database. To use our database type ** use dbname **.
-- To stop the MongoDB service - **net stop MongoDB**. 
+- To start the MongoDB service type command - **mongo**.
+- To display the database, type command - **db**. It will return **test** as default database. To use our database type command **use dbname**.
+- To stop the MongoDB service type command - **exit**. 
 
 
 
